@@ -1,3 +1,10 @@
+import {
+    guess,
+    handleGuess
+} from './commands/guess.js'
+import { ping } from './commands/ping.js'
+import { dice } from './commands/dice.js'
+import { pinterest } from './commands/pinterest.js'
 import { sticker } from './commands/sticker.js'
 import { tiktok } from './commands/tiktok.js'
 import { fishing } from './commands/fishing.js'
@@ -95,12 +102,7 @@ async function startBot() {
         console.log('Command:', command)
         console.log('Arguments:', args)
 
-        // command-command lu di bawah sini
-        if (command === 'ping') {
-            await sock.sendMessage(jid, {
-                text: 'pong!'
-            })
-        }
+        // command-command
 
         if (command === '.menu') {
             await menu(sock, jid, sender)
@@ -172,6 +174,29 @@ async function startBot() {
                 await sticker(sock, jid, message)
             }
         }
+
+        if (['.pin', '.pinterest'].includes(command)) {
+            await pinterest(sock, jid, args)
+        }
+
+        if (['.dice', '.d'].includes(command)) {
+            await dice(sock, jid, sender, args)
+        }
+
+        if (await handleGuess(sock, jid, sender, text)) {
+            return
+        }
+
+        if (command === '.guess') {
+            await guess(sock, jid, sender, args)
+            return
+        }
+
+        if (command === '.ping') {
+            await ping(sock, jid)
+            return
+        }
+
   })
 }
 

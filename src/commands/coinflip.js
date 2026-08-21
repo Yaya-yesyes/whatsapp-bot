@@ -1,6 +1,13 @@
 import db from '../database/database.js'
 import { formatMoney } from '../utils.js'
 
+const cooldowns = new Map()
+const COOLDOWN = 10 * 1000
+
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms))
+}
+
 export async function coinflip(sock, jid, sender, args) {
     const user = db.prepare(`
         SELECT *
@@ -20,6 +27,26 @@ export async function coinflip(sock, jid, sender, args) {
             text: '❌ Masukkan jumlah taruhan!\n\nContoh:\n.cf 1000\n.cf 1000 tails\n.cf all heads'
         })
         return
+    }
+
+    // =========================
+    // COOLDOWN
+    // =========================
+
+    const now = Date.now()
+    const lastPlay = cooldowns.get(sender)
+
+    if (lastPlay && now - lastPlay < COOLDOWN) {
+        const remaining = Math.ceil(
+            (COOLDOWN - (now - lastPlay)) / 1000
+           )
+
+           await sock.sendMessage(jid, {
+               text: `⏳ @${sender.split('@')[0]}, tunggu ${remaining} detik sebelum bermain Coinflip lagi.`,
+               mentions: [sender]
+        })
+
+         return
     }
 
     // =========================
@@ -77,6 +104,12 @@ export async function coinflip(sock, jid, sender, args) {
     }
 
     // =========================
+    // SET COOLDOWN
+    // =========================
+
+    cooldowns.set(sender, Date.now())
+
+    // =========================
     // COINFLIP
     // =========================
 
@@ -86,7 +119,7 @@ export async function coinflip(sock, jid, sender, args) {
 
     const won = choice === result
 
-    // =========================
+    // ========================o=
     // UPDATE BALANCE
     // =========================
 

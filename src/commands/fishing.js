@@ -33,7 +33,53 @@ export async function fishing(sock, jid, sender) {
         WHERE type = 'fish'
     `).all()
 
-    const fish = getRandomItem(fishes)
+    // =========================
+    // ROLL RARITY
+    // =========================
+
+    const rarityRoll = Math.random() * 100
+
+    let rarity
+
+    if (rarityRoll < 50) {
+        rarity = 'Common'
+    } else if (rarityRoll < 75) {
+        rarity = 'Uncommon'
+    } else if (rarityRoll < 90) {
+        rarity = 'Rare'
+    } else {
+        rarity = 'Legendary'
+    }
+
+    // =========================
+    // FILTER IKAN SESUAI RARITY
+    // =========================
+
+    const rarityFishes = fishes.filter(
+        fish => fish.rarity === rarity
+    )
+
+    // =========================
+    // WEIGHTED RANDOM
+    // =========================
+
+    const totalWeight = rarityFishes.reduce(
+        (sum, fish) => sum + fish.weight,
+        0
+    )
+
+    let randomWeight = Math.random() * totalWeight
+
+    let fish
+
+    for (const item of rarityFishes) {
+        randomWeight -= item.weight
+
+        if (randomWeight <= 0) {
+            fish = item
+            break
+        }
+    }
 
     db.transaction(() => {
         db.prepare(`
