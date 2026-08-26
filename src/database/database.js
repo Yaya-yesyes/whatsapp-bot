@@ -1,10 +1,12 @@
 import mysql from 'mysql2/promise';
+import dotenv from 'dotenv';
+dotenv.config();
 
 const db = mysql.createPool({
-    host: 'localhost',
-    user: 'yaya',
-    password: 'rahasia123',
-    database: 'db_bot',
+    host: process.env.host,
+    user: process.env.user,
+    password: '',
+    database: process.env.database,
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0
@@ -19,10 +21,15 @@ const initDB = async () => {
                 user_id VARCHAR(255) UNIQUE NOT NULL,
                 balance BIGINT DEFAULT 0,
                 level INT DEFAULT 1,
+                daily_streak INT DEFAULT 0,
+                last_daily BIGINT DEFAULT 0,
+                last_job BIGINT DEFAULT 0,
+                last_fishing BIGINT DEFAULT 0,
+                last_hunt BIGINT DEFAULT 0,
+                last_mining BIGINT DEFAULT 0,
                 xp INT DEFAULT 0,
                 current_biome_id INT DEFAULT 1,
-                current_rod_id INT DEFAULT 1,
-                last_fishing BIGINT DEFAULT 0
+                current_rod_id INT DEFAULT 1
             )
         `);
 
@@ -51,14 +58,14 @@ const initDB = async () => {
 
         // 4. Tabel Relasi Item ke Biome (ItemBiome)
         await db.query(`
-                CREATE TABLE IF NOT EXISTS item_biome (
-                    item_id INT NOT NULL,
-                    biome_id INT NOT NULL,
-                    catch_rate FLOAT NOT NULL,
-                    PRIMARY KEY (item_id, biome_id),
-                    FOREIGN KEY (item_id) REFERENCES items(id) ON DELETE CASCADE,
-                    FOREIGN KEY (biome_id) REFERENCES biomes(id) ON DELETE CASCADE
-                )
+            CREATE TABLE IF NOT EXISTS item_biome (
+                item_id INT NOT NULL,
+                biome_id INT NOT NULL,
+                catch_rate FLOAT NOT NULL,
+                PRIMARY KEY (item_id, biome_id),
+                FOREIGN KEY (item_id) REFERENCES items(id) ON DELETE CASCADE,
+                FOREIGN KEY (biome_id) REFERENCES biomes(id) ON DELETE CASCADE
+            )
         `);
 
         // 5. Tabel Inventory

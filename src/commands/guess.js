@@ -75,11 +75,13 @@ export async function guess(sock, jid, sender, args) {
         return
     }
 
-    const user = db.prepare(`
+    const [rows] = await db.query(`
         SELECT *
         FROM users
         WHERE user_id = ?
-    `).get(sender)
+    `, [sender])
+
+    const user = rows[0]
 
     if (!user) {
         await sock.sendMessage(jid, {
@@ -248,20 +250,22 @@ export async function handleGuess(
         const reward =
             game.bet * multiplier
 
-        db.prepare(`
+        await db.query(`
             UPDATE users
             SET balance = balance + ?
             WHERE user_id = ?
-        `).run(
+        `, [
             reward,
             sender
-        )
+        ])
 
-        const updatedUser = db.prepare(`
+        const [updatedRows] = await db.query(`
             SELECT balance
             FROM users
             WHERE user_id = ?
-        `).get(sender)
+        `, [sender])
+
+        const updatedUser = updatedRows[0]
 
         games.delete(sender)
 

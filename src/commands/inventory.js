@@ -1,13 +1,4 @@
 import db from '../database/database.js'
-import { formatMoney } from '../utils.js'
-
-const rarityEmoji = {
-    Common: '🪨',
-    Uncommon: '🍃',
-    Rare: '🔥',
-    Epic: '🔮',
-    Legendary: '✨'
-}
 
 const typeOrder = {
     fish: 1,
@@ -16,11 +7,16 @@ const typeOrder = {
 }
 
 export async function inventory(sock, jid, sender) {
-    const user = db.prepare(`
+    // =========================
+    // 1. CEK USER
+    // =========================
+    const [userRows] = await db.query(`
         SELECT *
         FROM users
         WHERE user_id = ?
-    `).get(sender)
+    `, [sender])
+
+    const user = userRows[0]
 
     if (!user) {
         await sock.sendMessage(jid, {
@@ -29,20 +25,22 @@ export async function inventory(sock, jid, sender) {
         return
     }
 
-    const items = db.prepare(`
-        SELECT
+    // =========================
+    // 2. AMBIL DATA INVENTORY & ITEMS
+    // =========================
+    const [items] = await db.query(`
+        SELECT 
             items.name,
             items.emoji,
             items.type,
-            items.rarity,
             items.value,
-            item_inventory.quantity
-        FROM item_inventory
-        JOIN items
-            ON item_inventory.item_id = items.id
-        WHERE item_inventory.user_id = ?
-        AND item_inventory.quantity > 0
-    `).all(sender)
+            inventory.quantity
+        FROM inventory
+        JOIN items 
+            ON inventory.item_id = items.id
+        WHERE inventory.user_id = ?
+          AND inventory.quantity > 0
+    `, [sender])
 
     if (items.length === 0) {
         await sock.sendMessage(jid, {
@@ -51,15 +49,9 @@ export async function inventory(sock, jid, sender) {
         return
     }
 
-    const rarityOrder = {
-        Common: 1,
-        Uncommon: 2,
-        Rare: 3,
-        Epic: 4,
-        Legendary: 5
-    }
-
-    // Urutkan berdasarkan kategori → rarity → value
+    // =========================
+    // 3. URUTKAN ITEM (Berdasarkan Tipe & Harga)
+    // =========================
     items.sort((a, b) => {
         const typeA = typeOrder[a.type?.toLowerCase()] ?? 99
         const typeB = typeOrder[b.type?.toLowerCase()] ?? 99
@@ -68,16 +60,12 @@ export async function inventory(sock, jid, sender) {
             return typeA - typeB
         }
 
-        const rarityA = rarityOrder[a.rarity] ?? 0
-        const rarityB = rarityOrder[b.rarity] ?? 0
-
-        if (rarityA !== rarityB) {
-            return rarityA - rarityB
-        }
-
         return b.value - a.value
     })
 
+    // =========================
+    // 4. KELOMPOKKAN ITEM
+    // =========================
     const groups = {
         fish: [],
         animal: [],
@@ -86,7 +74,6 @@ export async function inventory(sock, jid, sender) {
 
     for (const item of items) {
         const type = item.type?.toLowerCase()
-
         if (groups[type]) {
             groups[type].push(item)
         }
@@ -94,79 +81,35 @@ export async function inventory(sock, jid, sender) {
 
     let text = `🎒 INVENTORY @${sender.split('@')[0]}\n\n`
 
-    // =========================
-    // FISH
-    // =========================
-
+    // Kategori: Fish
     if (groups.fish.length > 0) {
         text += `🎣 FISH\n`
-
         for (const item of groups.fish) {
-            const rarity = rarityEmoji[item.rarity] || '⚪'
-
-            text += `${rarity} ${item.emoji} ${item.name} ×${item.quantity}\n`
+            text += `${item.emoji} ${item.name} ×${item.quantity}\n`
         }
-
         text += `\n`
     }
 
-    // =========================
-    // ANIMALS
-    // =========================
-
+    // Kategori: Animals
     if (groups.animal.length > 0) {
         text += `🦌 ANIMALS\n`
-
         for (const item of groups.animal) {
-            const rarity = rarityEmoji[item.rarity] || '⚪'
-
-            text += `${rarity} ${item.emoji} ${item.name} ×${item.quantity}\n`
+            text += `${item.emoji} ${item.name} ×${item.quantity}\n`
         }
-
         text += `\n`
     }
 
-    // =========================
-    // MATERIALS
-    // =========================
-
+    // Kategori: Materials/Ore
     if (groups.ore.length > 0) {
         text += `⛏️ MATERIALS\n`
-
         for (const item of groups.ore) {
             text += `${item.emoji} ${item.name} ×${item.quantity}\n`
         }
-
         text += `\n`
     }
 
-    // =========================
-    // TOTAL RARITY
-    // =========================
-
-    const rarityTotal = {
-        Common: 0,
-        Uncommon: 0,
-        Rare: 0,
-        Epic: 0,
-        Legendary: 0
-    }
-
-    for (const item of items) {
-        if (rarityTotal[item.rarity] !== undefined) {
-            rarityTotal[item.rarity] += item.quantity
-        }
-    }
-
-    text += `━━━━━━━━━━━━\n`
-    text += `🪨 Common: ${rarityTotal.Common}\n`
-    text += `🍃 Uncommon: ${rarityTotal.Uncommon}\n`
-    text += `🔥 Rare: ${rarityTotal.Rare}\n`
-    text += `🔮 Epic: ${rarityTotal.Epic}\n`
-    text += `✨ Legendary: ${rarityTotal.Legendary}`
-
     await sock.sendMessage(jid, {
-          text,
-          mentions: [sender]
+        text: text.trim(),
+        mentions: [sender]
     })
 }

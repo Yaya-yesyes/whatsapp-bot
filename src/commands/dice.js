@@ -19,11 +19,13 @@ function sleep(ms) {
 }
 
 export async function dice(sock, jid, sender, args) {
-    const user = db.prepare(`
+    const [rows] = await db.query(`
         SELECT *
         FROM users
         WHERE user_id = ?
-    `).get(sender)
+    `, [sender])
+
+    const user = rows[0]
 
     if (!user) {
         await sock.sendMessage(jid, {
@@ -147,17 +149,19 @@ export async function dice(sock, jid, sender, args) {
             ? -bet
             : reward - bet
 
-    db.prepare(`
+    await db.query(`
         UPDATE users
         SET balance = balance + ?
         WHERE user_id = ?
-    `).run(balanceChange, sender)
+    `, [balanceChange, sender])
 
-    const updatedUser = db.prepare(`
+    const [updatedRows] = await db.query(`
         SELECT balance
         FROM users
         WHERE user_id = ?
-    `).get(sender)
+    `, [sender])
+
+    const updatedUser = updatedRows[0]
 
     const username = sender.split('@')[0]
 

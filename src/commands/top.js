@@ -2,12 +2,13 @@ import db from '../database/database.js'
 import { formatMoney } from '../utils.js'
 
 export async function top(sock, jid) {
-    const users = db.prepare(`
+    // Ambil 10 user dengan balance terbanyak di MySQL
+    const [users] = await db.query(`
         SELECT user_id, balance
         FROM users
         ORDER BY balance DESC
         LIMIT 10
-    `).all()
+    `)
 
     if (users.length === 0) {
         await sock.sendMessage(jid, {
@@ -26,7 +27,7 @@ export async function top(sock, jid) {
     })
 
     await sock.sendMessage(jid, {
-        text,
+        text: text.trim(),
         mentions: users.map(user => user.user_id)
     })
 }
