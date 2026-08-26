@@ -10,11 +10,16 @@ const jobs = [
 ]
 
 export async function job(sock, jid, sender) {
-    const user = db.prepare(`
+    // =========================
+    // 1. VALIDASI USER & COOLDOWN
+    // =========================
+    const [userRows] = await db.query(`
         SELECT *
         FROM users
         WHERE user_id = ?
-    `).get(sender)
+    `, [sender])
+
+    const user = userRows[0]
 
     if (!user) {
         await sock.sendMessage(jid, {
@@ -24,8 +29,7 @@ export async function job(sock, jid, sender) {
     }
 
     const now = Math.floor(Date.now() / 1000)
-    const cooldown = 30 * 60
-
+    const cooldown = 30 * 60 // 30 Menit
     const remaining = user.last_job + cooldown - now
 
     if (remaining > 0) {
@@ -35,33 +39,41 @@ export async function job(sock, jid, sender) {
         await sock.sendMessage(jid, {
             text: `⏳ Kamu masih capek.\n\n🕐 Kamu bisa kerja lagi dalam ${minutes}M ${seconds}S.`
         })
-
         return
     }
 
+    // =========================
+    // 2. PILIH JOB & HITUNG GAJI (REWARD)
+    // =========================
     const selectedJob = jobs[Math.floor(Math.random() * jobs.length)]
 
-    const reward =
-        Math.floor(
-            Math.random() * (selectedJob.max - selectedJob.min + 1)
-        ) + selectedJob.min
+    const reward = Math.floor(
+        Math.random() * (selectedJob.max - selectedJob.min + 1)
+    ) + selectedJob.min
 
-    db.prepare(`
+    // =========================
+    // 3. UPDATE DATABASE (MYSQL)
+    // =========================
+    await db.query(`
         UPDATE users
         SET balance = balance + ?,
             last_job = ?
         WHERE user_id = ?
-    `).run(reward, now, sender)
+    `, [reward, now, sender])
 
-    const updatedUser = db.prepare(`
+    // Ambil saldo terbaru untuk ditampilkan di pesan
+    const [updatedUserRows] = await db.query(`
         SELECT balance
         FROM users
         WHERE user_id = ?
-    `).get(sender)
+    `, [sender])
 
-    await sock.sendMessage(jid, {
-        text: `
-💼 JOB COMPLETE!
+    const updatedUser = updatedUserRows[0]
+
+    // =========================
+    // 4. KIRIM PESAN HASIL
+    // =========================
+    const text = `💼 JOB COMPLETE!
 
 👤 @${sender.split('@')[0]}
 🧑‍💻 Job: ${selectedJob.name}
@@ -69,8 +81,10 @@ export async function job(sock, jid, sender) {
 💰 Earned: ${formatMoney(reward)} Cowoncy
 💵 Balance: ${formatMoney(updatedUser.balance)} Cowoncy
 
-🕐 Next job: 30M
-        `,
+🕐 Next job: 30M`
+
+    await sock.sendMessage(jid, {
+        text: text.trim(),
         mentions: [sender]
     })
 }

@@ -1,12 +1,17 @@
-import { formatMoney } from '../utils.js'
 import db from '../database/database.js'
+import { formatMoney } from '../utils.js'
 
 export async function daily(sock, jid, sender) {
-    const user = db.prepare(`
+    // =========================
+    // 1. CEK USER
+    // =========================
+    const [userRows] = await db.query(`
         SELECT *
         FROM users
         WHERE user_id = ?
-    `).get(sender)
+    `, [sender])
+
+    const user = userRows[0]
 
     if (!user) {
         await sock.sendMessage(jid, {
@@ -15,9 +20,11 @@ export async function daily(sock, jid, sender) {
         return
     }
 
+    // =========================
+    // 2. CEK COOLDOWN DAILY
+    // =========================
     const now = Math.floor(Date.now() / 1000)
-
-    const cooldown = 24 * 60 * 60
+    const cooldown = 24 * 60 * 60 // 24 Jam
 
     const nextDaily = user.last_daily + cooldown
     const remaining = nextDaily - now
@@ -31,33 +38,41 @@ export async function daily(sock, jid, sender) {
             text: `⏳ @${sender.split('@')[0]}, your daily is still on cooldown!\n\n🕐 Next daily in: ${hours}H ${minutes}M ${seconds}S`,
             mentions: [sender]
         })
-
         return
     }
 
     const reward = 2269
 
-    db.prepare(`
+    // =========================
+    // 3. UPDATE BALANCE & STREAK
+    // =========================
+    await db.query(`
         UPDATE users
         SET balance = balance + ?,
             daily_streak = daily_streak + 1,
             last_daily = ?
         WHERE user_id = ?
-    `).run(reward, now, sender)
+    `, [reward, now, sender])
 
-    const updatedUser = db.prepare(`
+    // Ambil data terbaru user untuk streak & balance
+    const [updatedUserRows] = await db.query(`
         SELECT balance, daily_streak
         FROM users
         WHERE user_id = ?
-    `).get(sender)
+    `, [sender])
 
+    const updatedUser = updatedUserRows[0]
+
+    // =========================
+    // 4. KIRIM PESAN SUKSES
+    // =========================
     await sock.sendMessage(jid, {
         text: `
 💰| @${sender.split('@')[0]}! Here is your daily 💵 ${formatMoney(reward)} Cowoncy!
 🔥| You're on a ${updatedUser.daily_streak} daily streak!
 💰| Your balance is now ${formatMoney(updatedUser.balance)} Cowoncy!
 🕐| Your next daily is in: 24H 0M 0S
-        `,
+        `.trim(),
         mentions: [sender]
     })
 }

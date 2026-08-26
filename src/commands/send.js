@@ -1,11 +1,17 @@
 import db from '../database/database.js'
+import { formatMoney } from '../utils.js'
 
 export async function sendMoney(sock, jid, sender, args, message) {
-    const senderUser = db.prepare(`
+    // =========================
+    // 1. CEK SENDER (PENGIRIM)
+    // =========================
+    const [senderRows] = await db.query(`
         SELECT *
         FROM users
         WHERE user_id = ?
-    `).get(sender)
+    `, [sender])
+
+    const senderUser = senderRows[0]
 
     if (!senderUser) {
         await sock.sendMessage(jid, {
@@ -14,6 +20,9 @@ export async function sendMoney(sock, jid, sender, args, message) {
         return
     }
 
+    // =========================
+    // 2. VALIDASI JUMLAH UANG
+    // =========================
     const amount = Number(args[0])
 
     if (!Number.isInteger(amount) || amount <= 0) {
@@ -23,6 +32,9 @@ export async function sendMoney(sock, jid, sender, args, message) {
         return
     }
 
+    // =========================
+    // 3. CEK PENERIMA (MENTION)
+    // =========================
     const mentionedUsers = message.message?.extendedTextMessage?.contextInfo?.mentionedJid || []
 
     if (mentionedUsers.length === 0) {
@@ -43,16 +55,21 @@ export async function sendMoney(sock, jid, sender, args, message) {
 
     if (amount > senderUser.balance) {
         await sock.sendMessage(jid, {
-            text: `❌ Saldo tidak cukup!\n\n💰 Balance: ${senderUser.balance}\n💸 Transfer: ${amount}`
+            text: `❌ Saldo tidak cukup!\n\n💰 Balance: ${formatMoney(senderUser.balance)}\n💸 Transfer: ${formatMoney(amount)}`
         })
         return
     }
 
-    const receiverUser = db.prepare(`
+    // =========================
+    // 4. CEK APAKAH PENERIMA TERDAFTAR
+    // =========================
+    const [receiverRows] = await db.query(`
         SELECT *
         FROM users
         WHERE user_id = ?
-    `).get(receiver)
+    `, [receiver])
+
+    const receiverUser = receiverRows[0]
 
     if (!receiverUser) {
         await sock.sendMessage(jid, {
@@ -61,22 +78,39 @@ export async function sendMoney(sock, jid, sender, args, message) {
         return
     }
 
-    const transfer = db.transaction(() => {
-        db.prepare(`
+    // =========================
+    // 5. TRANSAKSI MYSQL (TRANSFER SALDO)
+    // =========================
+    const conn = await db.getConnection()
+
+    try {
+        await conn.beginTransaction()
+
+        // Kurangi saldo pengirim
+        await conn.query(`
             UPDATE users
             SET balance = balance - ?
             WHERE user_id = ?
-        `).run(amount, sender)
+        `, [amount, sender])
 
-        db.prepare(`
+        // Tambah saldo penerima
+        await conn.query(`
             UPDATE users
             SET balance = balance + ?
             WHERE user_id = ?
-        `).run(amount, receiver)
-    })
+        `, [amount, receiver])
 
-    transfer()
+        await conn.commit()
+    } catch (error) {
+        await conn.rollback()
+        console.error('Transfer Money Transaction Error:', error)
+    } finally {
+        conn.release()
+    }
 
+    // =========================
+    // 6. KIRIM PESAN SUKSES
+    // =========================
     await sock.sendMessage(jid, {
         text: `
 💸 TRANSFER SUCCESS
@@ -84,8 +118,8 @@ export async function sendMoney(sock, jid, sender, args, message) {
 👤 From: @${sender.split('@')[0]}
 👤 To: @${receiver.split('@')[0]}
 
-💰 Amount: ${amount} Cowoncy
-        `,
+💰 Amount: ${formatMoney(amount)} Cowoncy
+        `.trim(),
         mentions: [sender, receiver]
     })
 }

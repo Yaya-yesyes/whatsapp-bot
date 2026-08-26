@@ -2,11 +2,16 @@ import db from '../database/database.js'
 import { formatMoney } from '../utils.js'
 
 export async function sell(sock, jid, sender, args) {
-    const user = db.prepare(`
+    // =========================
+    // 1. VALIDASI USER
+    // =========================
+    const [userRows] = await db.query(`
         SELECT *
         FROM users
         WHERE user_id = ?
-    `).get(sender)
+    `, [sender])
+
+    const user = userRows[0]
 
     if (!user) {
         await sock.sendMessage(jid, {
@@ -27,28 +32,27 @@ Contoh:
 .sell rabbit 3
 .sell koi 5
 .sell all
-            `
+            `.trim()
         })
         return
     }
 
     // =========================
-    // SELL ALL
+    // 2. SELL ALL
     // =========================
-
     if (itemName === 'all') {
-        const items = db.prepare(`
+        const [items] = await db.query(`
             SELECT
                 items.name,
                 items.emoji,
                 items.value,
-                item_inventory.quantity
-            FROM item_inventory
+                inventory.quantity
+            FROM inventory
             JOIN items
-                ON item_inventory.item_id = items.id
-            WHERE item_inventory.user_id = ?
-            AND item_inventory.quantity > 0
-        `).all(sender)
+                ON inventory.item_id = items.id
+            WHERE inventory.user_id = ?
+              AND inventory.quantity > 0
+        `, [sender])
 
         if (items.length === 0) {
             await sock.sendMessage(jid, {
@@ -58,53 +62,66 @@ Contoh:
         }
 
         let total = 0
-
         for (const item of items) {
             total += item.value * item.quantity
         }
 
-        db.transaction(() => {
-            db.prepare(`
-                DELETE FROM item_inventory
-                WHERE user_id = ?
-            `).run(sender)
+        // Transaksi MySQL untuk Sell All
+        const conn = await db.getConnection()
+        try {
+            await conn.beginTransaction()
 
-            db.prepare(`
+            await conn.query(`
+                DELETE FROM inventory
+                WHERE user_id = ?
+            `, [sender])
+
+            await conn.query(`
                 UPDATE users
                 SET balance = balance + ?
                 WHERE user_id = ?
-            `).run(total, sender)
-        })()
+            `, [total, sender])
 
-        const updatedUser = db.prepare(`
+            await conn.commit()
+        } catch (error) {
+            await conn.rollback()
+            console.error('Sell All Transaction Error:', error)
+        } finally {
+            conn.release()
+        }
+
+        const [updatedUserRows] = await db.query(`
             SELECT balance
             FROM users
             WHERE user_id = ?
-        `).get(sender)
+        `, [sender])
+
+        const updatedUser = updatedUserRows[0]
 
         await sock.sendMessage(jid, {
             text: `
 💰 SELL ALL SUCCESS!
 
-📦 Items sold: ${items.length}
+📦 Items sold type: ${items.length}
 💵 Total earned: ${formatMoney(total)} Cowoncy
 
 💰 Balance: ${formatMoney(updatedUser.balance)} Cowoncy
-            `
+            `.trim()
         })
 
         return
     }
 
     // =========================
-    // FIND ITEM
+    // 3. FIND ITEM
     // =========================
-
-    const item = db.prepare(`
+    const [itemRows] = await db.query(`
         SELECT *
         FROM items
         WHERE LOWER(name) = ?
-    `).get(itemName)
+    `, [itemName])
+
+    const item = itemRows[0]
 
     if (!item) {
         await sock.sendMessage(jid, {
@@ -114,9 +131,8 @@ Contoh:
     }
 
     // =========================
-    // QUANTITY
+    // 4. QUANTITY
     // =========================
-
     const quantity = args[1] ? Number(args[1]) : 1
 
     if (!Number.isInteger(quantity) || quantity <= 0) {
@@ -127,15 +143,16 @@ Contoh:
     }
 
     // =========================
-    // CHECK INVENTORY
+    // 5. CHECK INVENTORY
     // =========================
-
-    const inventory = db.prepare(`
+    const [invRows] = await db.query(`
         SELECT quantity
-        FROM item_inventory
+        FROM inventory
         WHERE user_id = ?
-        AND item_id = ?
-    `).get(sender, item.id)
+          AND item_id = ?
+    `, [sender, item.id])
+
+    const inventory = invRows[0]
 
     if (!inventory || inventory.quantity < quantity) {
         await sock.sendMessage(jid, {
@@ -143,62 +160,70 @@ Contoh:
 ❌ Kamu tidak punya ${quantity} ${item.name}.
 
 📦 Jumlah yang kamu punya: ${inventory?.quantity || 0}
-            `
+            `.trim()
         })
         return
     }
 
     // =========================
-    // CALCULATE PRICE
+    // 6. CALCULATE PRICE & UPDATE DATABASE
     // =========================
-
     const total = item.value * quantity
+    const conn = await db.getConnection()
 
-    // =========================
-    // UPDATE DATABASE
-    // =========================
+    try {
+        await conn.beginTransaction()
 
-    db.transaction(() => {
-        db.prepare(`
-            UPDATE item_inventory
+        // Kurangi quantity item di inventory
+        await conn.query(`
+            UPDATE inventory
             SET quantity = quantity - ?
             WHERE user_id = ?
-            AND item_id = ?
-        `).run(quantity, sender, item.id)
+              AND item_id = ?
+        `, [quantity, sender, item.id])
 
-        db.prepare(`
-            DELETE FROM item_inventory
+        // Hapus baris inventory jika quantity habis (<= 0)
+        await conn.query(`
+            DELETE FROM inventory
             WHERE user_id = ?
-            AND item_id = ?
-            AND quantity <= 0
-        `).run(sender, item.id)
+              AND item_id = ?
+              AND quantity <= 0
+        `, [sender, item.id])
 
-        db.prepare(`
+        // Tambah balance user
+        await conn.query(`
             UPDATE users
             SET balance = balance + ?
             WHERE user_id = ?
-        `).run(total, sender)
-    })()
+        `, [total, sender])
+
+        await conn.commit()
+    } catch (error) {
+        await conn.rollback()
+        console.error('Sell Item Transaction Error:', error)
+    } finally {
+        conn.release()
+    }
 
     // =========================
-    // GET NEW BALANCE
+    // 7. GET NEW BALANCE & SEND MESSAGE
     // =========================
-
-    const updatedUser = db.prepare(`
+    const [updatedUserRows] = await db.query(`
         SELECT balance
         FROM users
         WHERE user_id = ?
-    `).get(sender)
+    `, [sender])
+
+    const updatedUser = updatedUserRows[0]
 
     await sock.sendMessage(jid, {
         text: `
 💰 SALE SUCCESS!
 
 ${item.emoji} ${item.name} ×${quantity}
-✨ Rarity: ${item.rarity}
 
 💵 Earned: ${formatMoney(total)} Cowoncy
 💰 Balance: ${formatMoney(updatedUser.balance)} Cowoncy
-        `
+        `.trim()
     })
 }

@@ -9,11 +9,13 @@ function sleep(ms) {
 }
 
 export async function coinflip(sock, jid, sender, args) {
-    const user = db.prepare(`
+    const [rows] = await db.query(`
         SELECT *
         FROM users
         WHERE user_id = ?
-    `).get(sender)
+    `, [sender])
+
+    const user = rows[0]
 
     if (!user) {
         await sock.sendMessage(jid, {
@@ -39,14 +41,14 @@ export async function coinflip(sock, jid, sender, args) {
     if (lastPlay && now - lastPlay < COOLDOWN) {
         const remaining = Math.ceil(
             (COOLDOWN - (now - lastPlay)) / 1000
-           )
+        )
 
-           await sock.sendMessage(jid, {
-               text: `⏳ @${sender.split('@')[0]}, tunggu ${remaining} detik sebelum bermain Coinflip lagi.`,
-               mentions: [sender]
+        await sock.sendMessage(jid, {
+            text: `⏳ @${sender.split('@')[0]}, tunggu ${remaining} detik sebelum bermain Coinflip lagi.`,
+            mentions: [sender]
         })
 
-         return
+        return
     }
 
     // =========================
@@ -119,33 +121,35 @@ export async function coinflip(sock, jid, sender, args) {
 
     const won = choice === result
 
-    // ========================o=
+    // =========================
     // UPDATE BALANCE
     // =========================
 
     if (won) {
-        db.prepare(`
+        await db.query(`
             UPDATE users
             SET balance = balance + ?
             WHERE user_id = ?
-        `).run(bet, sender)
+        `, [bet, sender])
     } else {
-        db.prepare(`
+        await db.query(`
             UPDATE users
             SET balance = balance - ?
             WHERE user_id = ?
-        `).run(bet, sender)
+        `, [bet, sender])
     }
 
     // =========================
     // GET UPDATED BALANCE
     // =========================
 
-    const updatedUser = db.prepare(`
+    const [updatedRows] = await db.query(`
         SELECT balance
         FROM users
         WHERE user_id = ?
-    `).get(sender)
+    `, [sender])
+
+    const updatedUser = updatedRows[0]
 
     // =========================
     // RESULT MESSAGE

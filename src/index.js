@@ -4,7 +4,6 @@ import {
 } from './commands/guess.js'
 import { ping } from './commands/ping.js'
 import { dice } from './commands/dice.js'
-import { pinterest } from './commands/pinterest.js'
 import { sticker } from './commands/sticker.js'
 import { tiktok } from './commands/tiktok.js'
 import { fishing } from './commands/fishing.js'
@@ -18,7 +17,7 @@ import { sendMoney } from './commands/send.js'
 import { coinflip } from './commands/coinflip.js'
 import { balance } from './commands/balance.js'
 import { register } from './commands/register.js'
-import { daily } from './commands/owo.js'
+import { daily } from './commands/daily.js'
 import { menu } from './commands/menu.js'
 
 import makeWASocket, {
@@ -173,10 +172,6 @@ async function startBot() {
                 console.log('❌ Tidak menemukan gambar terakhir')
                 await sticker(sock, jid, message)
             }
-        }
-
-        if (['.pin', '.pinterest'].includes(command)) {
-            await pinterest(sock, jid, args)
         }
 
         if (['.dice', '.d'].includes(command)) {

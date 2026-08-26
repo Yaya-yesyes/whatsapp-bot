@@ -2,11 +2,16 @@ import db from '../database/database.js'
 import { formatMoney, getRandomItem } from '../utils.js'
 
 export async function mining(sock, jid, sender) {
-    const user = db.prepare(`
+    // =========================
+    // 1. VALIDASI USER & COOLDOWN
+    // =========================
+    const [userRows] = await db.query(`
         SELECT *
         FROM users
         WHERE user_id = ?
-    `).get(sender)
+    `, [sender])
+
+    const user = userRows[0]
 
     if (!user) {
         await sock.sendMessage(jid, {
@@ -16,7 +21,7 @@ export async function mining(sock, jid, sender) {
     }
 
     const now = Math.floor(Date.now() / 1000)
-    const cooldown = 30 * 60
+    const cooldown = 30 * 60 // 30 Menit
 
     const remaining = user.last_mining + cooldown - now
 
@@ -30,41 +35,65 @@ export async function mining(sock, jid, sender) {
         return
     }
 
-    const ores = db.prepare(`
+    // =========================
+    // 2. AMBIL DATA ORE
+    // =========================
+    const [ores] = await db.query(`
         SELECT *
         FROM items
         WHERE type = 'ore'
-    `).all()
+    `)
+
+    if (ores.length === 0) {
+        await sock.sendMessage(jid, { text: '❌ Belum ada data ore di database.' })
+        return
+    }
 
     const ore = getRandomItem(ores)
 
-    db.transaction(() => {
-        db.prepare(`
-            INSERT INTO item_inventory (user_id, item_id, quantity)
-            VALUES (?, ?, 1)
-            ON CONFLICT(user_id, item_id)
-            DO UPDATE SET quantity = quantity + 1
-        `).run(sender, ore.id)
+    // =========================
+    // 3. TRANSAKSI DATABASE (MYSQL)
+    // =========================
+    const conn = await db.getConnection()
 
-        db.prepare(`
+    try {
+        await conn.beginTransaction()
+
+        // Menggunakan ON DUPLICATE KEY UPDATE untuk MySQL
+        await conn.query(`
+            INSERT INTO inventory (user_id, item_id, quantity)
+            VALUES (?, ?, 1)
+            ON DUPLICATE KEY UPDATE quantity = quantity + 1
+        `, [sender, ore.id])
+
+        await conn.query(`
             UPDATE users
             SET last_mining = ?
             WHERE user_id = ?
-        `).run(now, sender)
-    })()
+        `, [now, sender])
 
-    await sock.sendMessage(jid, {
-        text: `
-⛏️ MINING!
+        await conn.commit()
+    } catch (error) {
+        await conn.rollback()
+        console.error('Mining Transaction Error:', error)
+    } finally {
+        conn.release()
+    }
+
+    // =========================
+    // 4. KIRIM PESAN HASIL
+    // =========================
+    const text = `⛏️ MINING!
 
 @${sender.split('@')[0]} went mining...
 
 ${ore.emoji} ${ore.name}
-✨ Rarity: ${ore.rarity}
 💰 Value: ${formatMoney(ore.value)} Cowoncy
 
-🕐 Next mining: 30 minutes
-        `,
+🕐 Next mining: 30 minutes`
+
+    await sock.sendMessage(jid, {
+        text: text.trim(),
         mentions: [sender]
     })
 }
