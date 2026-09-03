@@ -5,7 +5,7 @@ dotenv.config();
 const db = mysql.createPool({
     host: process.env.host,
     user: process.env.user,
-    password: '',
+    password: process.env.password,
     database: process.env.database,
     waitForConnections: true,
     connectionLimit: 10,
@@ -20,7 +20,7 @@ const initDB = async () => {
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 user_id VARCHAR(255) UNIQUE NOT NULL,
                 balance BIGINT DEFAULT 0,
-                level INT DEFAULT 1,
+                level INT DEFAULT 0,
                 daily_streak INT DEFAULT 0,
                 last_daily BIGINT DEFAULT 0,
                 last_job BIGINT DEFAULT 0,

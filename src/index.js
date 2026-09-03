@@ -1,12 +1,16 @@
 import {
+    fishing,
+    claimFishing
+} from './commands/fishing.js'
+import {
     guess,
     handleGuess
 } from './commands/guess.js'
+import tttCommand from './commands/ttt.js'
 import { ping } from './commands/ping.js'
 import { dice } from './commands/dice.js'
 import { sticker } from './commands/sticker.js'
 import { tiktok } from './commands/tiktok.js'
-import { fishing } from './commands/fishing.js'
 import { mining } from './commands/mining.js'
 import { sell } from './commands/sell.js'
 import { inventory } from './commands/inventory.js'
@@ -148,7 +152,16 @@ async function startBot() {
         }
 
         if (['.fish', '.fishing'].includes(command)) {
-            await fishing(sock, jid, sender)
+            await fishing(
+                sock,
+                jid,
+                sender,
+                message.pushName
+            )
+        }
+
+        if (['.klaimfish', '.claimfish'].includes(command)) {
+            await claimFishing(sock, jid, sender, args)
         }
 
         if (['.mine', '.mining'].includes(command)) {
@@ -190,6 +203,10 @@ async function startBot() {
         if (command === '.ping') {
             await ping(sock, jid)
             return
+        }
+
+        if (['.ttt', '.tictactoe'].includes(command)) {
+            await tttCommand(sock, jid)
         }
 
   })
