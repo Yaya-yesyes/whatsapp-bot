@@ -1,0 +1,2423 @@
+<style>
+:root{
+  --bg:#0b141a;
+  --panel:#111b21;
+  --panel-2:#18252c;
+  --panel-3:#20343d;
+
+  --text:#e9edef;
+  --text-soft:#b7c4ca;
+  --muted:#7f929b;
+
+  --green:#00a884;
+  --green-dark:#008f72;
+  --green-soft:rgba(0,168,132,.15);
+
+  --water-1:#4d9fc9;
+  --water-2:#2777a3;
+  --water-3:#185d83;
+
+  --sky:#8cc9e8;
+  --wood:#8b5a35;
+  --wood-dark:#5f3d25;
+
+  --pixel:4px;
+
+  --font:
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    Helvetica,
+    Arial,
+    sans-serif;
+}
+
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  -webkit-tap-highlight-color:transparent;
+}
+
+html,
+body{
+  min-height:100vh;
+  background:transparent;
+  color:var(--text);
+  font-family:var(--font);
+}
+
+body{
+  overflow-x:hidden;
+}
+
+button{
+  font:inherit;
+}
+
+/* =========================================================
+   MAIN
+   ========================================================= */
+
+.stage{
+  width:100%;
+  min-height:100vh;
+
+  display:flex;
+  justify-content:center;
+  align-items:center;
+
+  padding:18px 12px;
+}
+
+.card{
+  width:100%;
+  max-width:380px;
+}
+
+/* =========================================================
+   HEADER
+   ========================================================= */
+
+.header{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+
+  margin-bottom:12px;
+  padding-bottom:10px;
+
+  border-bottom:1px solid rgba(255,255,255,.08);
+}
+
+.header__left{
+  min-width:0;
+}
+
+.header__title{
+  font-size:20px;
+  font-weight:800;
+  letter-spacing:.2px;
+}
+
+.header__subtitle{
+  margin-top:3px;
+
+  color:var(--muted);
+  font-size:11px;
+}
+
+.header__biome{
+  flex-shrink:0;
+
+  padding:5px 9px;
+
+  border-radius:999px;
+
+  background:var(--green-soft);
+  border:1px solid rgba(0,168,132,.25);
+
+  color:#57d9bc;
+  font-size:10px;
+  font-weight:700;
+}
+
+/* =========================================================
+   PLAYER
+   ========================================================= */
+
+.player{
+  display:flex;
+  align-items:center;
+  gap:9px;
+
+  margin-bottom:12px;
+}
+
+.player__avatar{
+  width:31px;
+  height:31px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  border-radius:50%;
+
+  background:var(--panel-2);
+  border:1px solid rgba(255,255,255,.08);
+
+  font-size:16px;
+}
+
+.player__name{
+  color:var(--text-soft);
+  font-size:12px;
+}
+
+.player__name strong{
+  color:#61c4e4;
+}
+
+/* =========================================================
+   GAME SCENE
+   ========================================================= */
+
+.scene{
+  position:relative;
+
+  width:100%;
+  aspect-ratio:1.16 / 1;
+
+  overflow:hidden;
+
+  border-radius:12px;
+
+  background:#74b8d9;
+
+  border:1px solid rgba(255,255,255,.08);
+
+  box-shadow:
+    0 12px 28px rgba(0,0,0,.25),
+    inset 0 0 0 1px rgba(255,255,255,.02);
+}
+
+/* sky */
+
+.sky{
+  position:absolute;
+  inset:0 0 48% 0;
+
+  background:
+    linear-gradient(
+      to bottom,
+      #76b7d8 0%,
+      #9fd6ea 100%
+    );
+}
+
+/* sun */
+
+.sun{
+  position:absolute;
+
+  top:24px;
+  right:30px;
+
+  width:46px;
+  height:46px;
+
+  border-radius:50%;
+
+  background:#ffe49a;
+
+  box-shadow:
+    0 0 0 6px rgba(255,228,154,.11),
+    0 0 24px rgba(255,220,130,.30);
+}
+
+/* clouds */
+
+.cloud{
+  position:absolute;
+
+  width:66px;
+  height:16px;
+
+  border-radius:999px;
+
+  background:rgba(255,255,255,.78);
+}
+
+.cloud::before,
+.cloud::after{
+  content:"";
+
+  position:absolute;
+
+  border-radius:50%;
+
+  background:rgba(255,255,255,.78);
+}
+
+.cloud::before{
+  width:24px;
+  height:24px;
+
+  left:10px;
+  bottom:5px;
+}
+
+.cloud::after{
+  width:31px;
+  height:31px;
+
+  left:29px;
+  bottom:3px;
+}
+
+.cloud--1{
+  top:30px;
+  left:24px;
+
+  transform:scale(.8);
+}
+
+.cloud--2{
+  top:76px;
+  right:70px;
+
+  transform:scale(.58);
+  opacity:.72;
+}
+
+/* =========================================================
+   FAR LAND
+   ========================================================= */
+
+.hill{
+  position:absolute;
+
+  left:-8%;
+  right:-8%;
+
+  bottom:41%;
+
+  height:21%;
+
+  background:#78a564;
+
+  border-radius:50% 50% 0 0 / 90% 90% 0 0;
+}
+
+.hill--back{
+  bottom:43%;
+
+  background:#659258;
+  opacity:.65;
+
+  transform:scaleX(1.08);
+}
+
+/* =========================================================
+   TREES
+   ========================================================= */
+
+.tree{
+  position:absolute;
+
+  bottom:42%;
+
+  width:45px;
+  height:74px;
+}
+
+.tree__trunk{
+  position:absolute;
+
+  bottom:0;
+  left:18px;
+
+  width:10px;
+  height:32px;
+
+  background:#6a482e;
+  border-radius:2px;
+}
+
+.tree__leaf{
+  position:absolute;
+
+  left:2px;
+  top:0;
+
+  width:42px;
+  height:46px;
+
+  border-radius:
+    48% 52% 48% 52%;
+
+  background:#3f6f3f;
+
+  box-shadow:
+    8px 8px 0 rgba(42,85,42,.55),
+    -5px 13px 0 rgba(60,105,60,.55);
+}
+
+.tree__leaf::before{
+  content:"";
+
+  position:absolute;
+
+  left:10px;
+  top:-9px;
+
+  width:25px;
+  height:25px;
+
+  border-radius:50%;
+
+  background:#4d7e48;
+}
+
+.tree--1{
+  left:7px;
+  transform:scale(.72);
+}
+
+.tree--2{
+  left:49px;
+  transform:scale(.92);
+}
+
+.tree--3{
+  right:11px;
+  transform:scale(.82);
+}
+
+/* =========================================================
+   GROUND
+   ========================================================= */
+
+.ground{
+  position:absolute;
+
+  left:0;
+  right:0;
+  bottom:40%;
+
+  height:8%;
+
+  background:#7eaa5a;
+}
+
+/* =========================================================
+   WATER
+   ========================================================= */
+
+.water{
+  position:absolute;
+
+  left:0;
+  right:0;
+  bottom:0;
+
+  height:46%;
+
+  background:
+    linear-gradient(
+      to bottom,
+      var(--water-1) 0%,
+      var(--water-2) 54%,
+      var(--water-3) 100%
+    );
+
+  overflow:hidden;
+}
+
+.wave{
+  position:absolute;
+
+  left:-10%;
+  width:120%;
+
+  height:12px;
+
+  border-top:2px solid rgba(255,255,255,.24);
+  border-bottom:1px solid rgba(255,255,255,.08);
+
+  opacity:.72;
+
+  animation:
+    waterWave 4s ease-in-out infinite;
+}
+
+.wave--1{
+  top:15%;
+}
+
+.wave--2{
+  top:35%;
+  opacity:.42;
+  animation-delay:-1.2s;
+}
+
+.wave--3{
+  top:58%;
+  opacity:.28;
+  animation-delay:-2.1s;
+}
+
+.wave--4{
+  top:78%;
+  opacity:.2;
+  animation-delay:-.7s;
+}
+
+@keyframes waterWave{
+  0%,100%{
+    transform:translateX(-1.5%);
+  }
+
+  50%{
+    transform:translateX(1.5%);
+  }
+}
+
+/* =========================================================
+   DOCK
+   ========================================================= */
+
+.dock{
+  position:absolute;
+
+  left:8%;
+  bottom:31%;
+
+  width:48%;
+  height:16%;
+
+  z-index:8;
+}
+
+.dock__top{
+  position:absolute;
+
+  top:0;
+  left:0;
+
+  width:100%;
+  height:14px;
+
+  border-radius:3px;
+
+  background:
+    repeating-linear-gradient(
+      to right,
+      #9c6940 0 19px,
+      #7b4f30 19px 22px
+    );
+
+  box-shadow:
+    0 4px 0 rgba(0,0,0,.13);
+}
+
+.dock__leg{
+  position:absolute;
+
+  top:10px;
+
+  width:10px;
+  height:50px;
+
+  background:#684329;
+}
+
+.dock__leg--1{
+  left:20px;
+  transform:rotate(5deg);
+}
+
+.dock__leg--2{
+  right:24px;
+  transform:rotate(-4deg);
+}
+
+/* =========================================================
+   PLAYER CHARACTER
+   ========================================================= */
+
+.player-character{
+  position:absolute;
+
+  left:29%;
+  bottom:39%;
+
+  width:42px;
+  height:58px;
+
+  z-index:10;
+
+  transition:
+    left .22s ease,
+    transform .22s ease;
+}
+
+.player-character.is-left{
+  transform:scaleX(-1);
+}
+
+.player-character__head{
+  position:absolute;
+
+  top:0;
+  left:10px;
+
+  width:23px;
+  height:22px;
+
+  border-radius:5px;
+
+  background:#d79c72;
+
+  border:
+    2px solid rgba(0,0,0,.16);
+}
+
+.player-character__hair{
+  position:absolute;
+
+  top:-3px;
+  left:8px;
+
+  width:27px;
+  height:11px;
+
+  border-radius:6px 6px 2px 2px;
+
+  background:#463226;
+}
+
+.player-character__body{
+  position:absolute;
+
+  left:7px;
+  top:21px;
+
+  width:30px;
+  height:28px;
+
+  border-radius:5px;
+
+  background:#5b87a6;
+
+  border:
+    2px solid rgba(0,0,0,.13);
+}
+
+.player-character__shirt{
+  position:absolute;
+
+  top:25px;
+  left:11px;
+
+  width:22px;
+  height:22px;
+
+  background:#4d7893;
+}
+
+.player-character__arm{
+  position:absolute;
+
+  top:25px;
+
+  width:8px;
+  height:23px;
+
+  border-radius:4px;
+
+  background:#d79c72;
+
+  transform-origin:top center;
+}
+
+.player-character__arm--front{
+  right:0;
+
+  transform:
+    rotate(-34deg);
+}
+
+.player-character__arm--back{
+  left:1px;
+
+  transform:
+    rotate(25deg);
+}
+
+.player-character__leg{
+  position:absolute;
+
+  bottom:0;
+
+  width:10px;
+  height:15px;
+
+  border-radius:2px;
+
+  background:#453f55;
+}
+
+.player-character__leg--1{
+  left:10px;
+}
+
+.player-character__leg--2{
+  left:23px;
+}
+
+/* =========================================================
+   FISHING ROD
+   ========================================================= */
+
+.rod{
+  position:absolute;
+
+  left:31%;
+  bottom:48%;
+
+  z-index:12;
+
+  width:62px;
+  height:8px;
+
+  transform:
+    rotate(-33deg);
+  transform-origin:left center;
+
+  pointer-events:none;
+}
+
+.rod__stick{
+  position:absolute;
+
+  left:0;
+  top:2px;
+
+  width:60px;
+  height:3px;
+
+  border-radius:2px;
+
+  background:#2e2520;
+}
+
+.rod__tip{
+  position:absolute;
+
+  right:-3px;
+  top:0;
+
+  width:6px;
+  height:6px;
+
+  border-radius:50%;
+
+  background:#d0e0e8;
+}
+
+.rod__line{
+  position:absolute;
+
+  right:-4px;
+  top:4px;
+
+  width:1px;
+  height:84px;
+
+  background:rgba(250,250,250,.72);
+
+  transform-origin:top center;
+
+  transition:
+    height .35s ease;
+}
+
+.rod__bobber{
+  position:absolute;
+
+  right:-8px;
+  top:80px;
+
+  width:10px;
+  height:16px;
+
+  border-radius:
+    8px 8px 7px 7px;
+
+  background:#f2eee2;
+
+  border:
+    1px solid rgba(0,0,0,.15);
+
+  box-shadow:
+    0 3px 0 rgba(0,0,0,.10);
+
+  transition:
+    transform .15s ease;
+}
+
+.rod__bobber::before{
+  content:"";
+
+  position:absolute;
+
+  left:-1px;
+  top:-2px;
+
+  width:10px;
+  height:7px;
+
+  border-radius:
+    7px 7px 3px 3px;
+
+  background:#df5d55;
+}
+
+.rod.is-cast .rod__line{
+  height:112px;
+}
+
+.rod.is-cast .rod__bobber{
+  top:108px;
+}
+
+.rod.is-bite .rod__bobber{
+  animation:
+    bobberBite .24s ease-in-out infinite alternate;
+}
+
+@keyframes bobberBite{
+  from{
+    transform:translateY(-4px);
+  }
+
+  to{
+    transform:translateY(8px);
+  }
+}
+
+/* =========================================================
+   FISH
+   ========================================================= */
+
+.fish-shadow{
+  position:absolute;
+
+  width:30px;
+  height:9px;
+
+  border-radius:50%;
+
+  background:rgba(0,0,0,.13);
+
+  transform:translate(-50%,-50%) scale(.8);
+
+  opacity:0;
+
+  transition:
+    opacity .3s ease;
+}
+
+.fish-shadow.is-visible{
+  opacity:1;
+}
+
+/* =========================================================
+   STATUS
+   ========================================================= */
+
+.status{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+
+  gap:8px;
+
+  margin-top:11px;
+  margin-bottom:11px;
+}
+
+.status__left{
+  display:flex;
+  align-items:center;
+
+  gap:8px;
+
+  min-width:0;
+
+  color:var(--text-soft);
+  font-size:12px;
+}
+
+.status__indicator{
+  width:8px;
+  height:8px;
+
+  flex-shrink:0;
+
+  border-radius:50%;
+
+  background:#aab9bf;
+
+  box-shadow:
+    0 0 0 3px rgba(255,255,255,.04);
+}
+
+.status__indicator.is-ready{
+  background:#65d4b8;
+}
+
+.status__indicator.is-bite{
+  background:#ffcf6a;
+
+  animation:
+    pulse .55s ease-in-out infinite alternate;
+}
+
+.status__indicator.is-caught{
+  background:#6bd4ff;
+}
+
+@keyframes pulse{
+  from{
+    transform:scale(.8);
+  }
+
+  to{
+    transform:scale(1.35);
+  }
+}
+
+.status__text{
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.status__timer{
+  flex-shrink:0;
+
+  color:var(--muted);
+  font-size:10px;
+}
+
+/* =========================================================
+   CONTROLS
+   ========================================================= */
+
+.controls{
+  display:grid;
+
+  grid-template-columns:
+    1fr
+    1fr
+    1fr
+    1fr;
+
+  gap:7px;
+}
+
+.control{
+  min-height:43px;
+
+  padding:7px 5px;
+
+  border-radius:9px;
+
+  border:
+    1px solid rgba(255,255,255,.08);
+
+  background:var(--panel);
+
+  color:var(--text-soft);
+
+  cursor:pointer;
+
+  transition:
+    transform .12s ease,
+    background .12s ease,
+    border-color .12s ease;
+}
+
+.control:active{
+  transform:scale(.96);
+}
+
+.control:disabled{
+  opacity:.48;
+  cursor:default;
+}
+
+.control--cast{
+  background:
+    linear-gradient(
+      180deg,
+      rgba(0,168,132,.21),
+      rgba(0,168,132,.10)
+    );
+
+  border-color:
+    rgba(0,168,132,.35);
+
+  color:#61dbc0;
+}
+
+.control__icon{
+  display:block;
+
+  font-size:15px;
+
+  line-height:1;
+}
+
+.control__label{
+  display:block;
+
+  margin-top:4px;
+
+  font-size:10px;
+}
+
+/* =========================================================
+   TIP
+   ========================================================= */
+
+.tip{
+  margin-top:9px;
+
+  padding:8px 10px;
+
+  border-radius:8px;
+
+  background:rgba(255,255,255,.035);
+
+  color:var(--muted);
+
+  font-size:10px;
+
+  line-height:1.4;
+
+  text-align:center;
+}
+
+/* =========================================================
+   RESULT MODAL
+   ========================================================= */
+
+.overlay{
+  position:fixed;
+  inset:0;
+
+  z-index:999;
+
+  display:flex;
+
+  align-items:center;
+  justify-content:center;
+
+  padding:16px;
+
+  background:rgba(4,9,12,.70);
+
+  opacity:0;
+  pointer-events:none;
+
+  transition:
+    opacity .25s ease;
+}
+
+.overlay.is-open{
+  opacity:1;
+  pointer-events:auto;
+}
+
+.result-card{
+  width:100%;
+  max-width:345px;
+
+  padding:18px;
+
+  border-radius:14px;
+
+  background:
+    linear-gradient(
+      180deg,
+      #16242b,
+      #101a20
+    );
+
+  border:
+    1px solid rgba(255,255,255,.08);
+
+  box-shadow:
+    0 24px 60px rgba(0,0,0,.45);
+
+  transform:
+    translateY(15px)
+    scale(.97);
+
+  transition:
+    transform .28s ease;
+}
+
+.overlay.is-open .result-card{
+  transform:
+    translateY(0)
+    scale(1);
+}
+
+.result__top{
+  text-align:center;
+}
+
+.result__small{
+  color:var(--muted);
+
+  font-size:10px;
+  font-weight:700;
+
+  letter-spacing:.7px;
+  text-transform:uppercase;
+}
+
+.result__emoji{
+  display:block;
+
+  margin-top:7px;
+
+  font-size:52px;
+
+  line-height:1;
+}
+
+.result__name{
+  margin-top:8px;
+
+  font-size:23px;
+  font-weight:800;
+}
+
+.result__biome{
+  margin-top:4px;
+
+  color:var(--muted);
+  font-size:11px;
+}
+
+.result__divider{
+  height:1px;
+
+  margin:14px 0;
+
+  background:
+    rgba(255,255,255,.08);
+}
+
+.result__stats{
+  display:grid;
+
+  grid-template-columns:
+    repeat(3,1fr);
+
+  gap:7px;
+}
+
+.stat{
+  padding:10px 7px;
+
+  border-radius:9px;
+
+  background:rgba(255,255,255,.035);
+
+  text-align:center;
+}
+
+.stat__icon{
+  display:block;
+
+  font-size:15px;
+}
+
+.stat__label{
+  display:block;
+
+  margin-top:4px;
+
+  color:var(--muted);
+
+  font-size:9px;
+}
+
+.stat__value{
+  display:block;
+
+  margin-top:3px;
+
+  color:#62d9bc;
+
+  font-size:11px;
+  font-weight:800;
+}
+
+/* =========================================================
+   CLAIM
+   ========================================================= */
+
+.claim{
+  margin-top:13px;
+
+  padding:12px;
+
+  border-radius:10px;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(0,168,132,.12),
+      rgba(0,168,132,.05)
+    );
+
+  border:
+    1px solid rgba(0,168,132,.25);
+}
+
+.claim__title{
+  color:#63dabe;
+
+  font-size:10px;
+  font-weight:800;
+
+  letter-spacing:.5px;
+
+  text-transform:uppercase;
+}
+
+.claim__code{
+  margin-top:7px;
+
+  padding:9px 10px;
+
+  border-radius:7px;
+
+  background:#0b141a;
+
+  border:
+    1px dashed rgba(99,218,190,.35);
+
+  color:#fff;
+
+  text-align:center;
+
+  font-family:
+    ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Monaco,
+    Consolas,
+    monospace;
+
+  font-size:14px;
+  font-weight:800;
+
+  letter-spacing:1.3px;
+}
+
+.claim__command{
+  margin-top:7px;
+
+  color:var(--muted);
+
+  font-size:9px;
+
+  text-align:center;
+}
+
+.claim__command strong{
+  color:var(--text-soft);
+}
+
+/* =========================================================
+   RESULT BUTTONS
+   ========================================================= */
+
+.result-buttons{
+  display:grid;
+
+  grid-template-columns:1fr 1fr;
+
+  gap:7px;
+
+  margin-top:10px;
+}
+
+.result-button{
+  min-height:42px;
+
+  border-radius:9px;
+
+  border:
+    1px solid rgba(255,255,255,.08);
+
+  background:var(--panel);
+
+  color:var(--text-soft);
+
+  cursor:pointer;
+}
+
+.result-button--main{
+  background:
+    rgba(0,168,132,.14);
+
+  border-color:
+    rgba(0,168,132,.27);
+
+  color:#61d9bc;
+}
+
+.result-button__icon{
+  font-size:15px;
+}
+
+.result-button__text{
+  display:block;
+
+  margin-top:2px;
+
+  font-size:10px;
+}
+
+/* =========================================================
+   BAG
+   ========================================================= */
+
+.bag{
+  display:none;
+
+  margin-top:9px;
+
+  padding:12px;
+
+  border-radius:10px;
+
+  background:var(--panel);
+
+  border:
+    1px solid rgba(255,255,255,.07);
+}
+
+.bag.is-open{
+  display:block;
+}
+
+.bag__title{
+  color:var(--text-soft);
+
+  font-size:11px;
+  font-weight:700;
+}
+
+.bag__grid{
+  display:grid;
+
+  grid-template-columns:
+    repeat(4,1fr);
+
+  gap:6px;
+
+  margin-top:8px;
+}
+
+.bag-item{
+  min-height:48px;
+
+  display:flex;
+  flex-direction:column;
+
+  align-items:center;
+  justify-content:center;
+
+  border-radius:8px;
+
+  background:rgba(255,255,255,.035);
+}
+
+.bag-item__emoji{
+  font-size:18px;
+}
+
+.bag-item__name{
+  margin-top:3px;
+
+  max-width:100%;
+
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+
+  color:var(--muted);
+
+  font-size:8px;
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media(max-width:330px){
+  .stage{
+    padding:13px 9px;
+  }
+
+  .controls{
+    gap:5px;
+  }
+
+  .control{
+    min-height:40px;
+  }
+
+  .result__stats{
+    gap:5px;
+  }
+
+  .stat{
+    padding:8px 4px;
+  }
+}
+</style>
+
+<div class="stage">
+  <main class="card">
+
+    <!-- HEADER -->
+    <header class="header">
+      <div class="header__left">
+        <div class="header__title">
+          🎣 Fishing
+        </div>
+
+        <div class="header__subtitle">
+          Cast your line and see what bites.
+        </div>
+      </div>
+
+      <div class="header__biome" id="biomeLabel">
+        __BIOME_NAME__
+      </div>
+    </header>
+
+    <!-- PLAYER -->
+    <div class="player">
+      <div class="player__avatar">
+        🧑
+      </div>
+
+      <div class="player__name">
+        <strong>__PLAYER_NAME__</strong>
+        is fishing...
+      </div>
+    </div>
+
+    <!-- SCENE -->
+    <section class="scene" id="scene">
+
+      <!-- SKY -->
+      <div class="sky"></div>
+
+      <div class="sun"></div>
+
+      <div class="cloud cloud--1"></div>
+      <div class="cloud cloud--2"></div>
+
+      <!-- HILLS -->
+      <div class="hill hill--back"></div>
+      <div class="hill"></div>
+
+      <!-- TREES -->
+      <div class="tree tree--1">
+        <div class="tree__leaf"></div>
+        <div class="tree__trunk"></div>
+      </div>
+
+      <div class="tree tree--2">
+        <div class="tree__leaf"></div>
+        <div class="tree__trunk"></div>
+      </div>
+
+      <div class="tree tree--3">
+        <div class="tree__leaf"></div>
+        <div class="tree__trunk"></div>
+      </div>
+
+      <!-- GROUND -->
+      <div class="ground"></div>
+
+      <!-- WATER -->
+      <div class="water">
+        <div class="wave wave--1"></div>
+        <div class="wave wave--2"></div>
+        <div class="wave wave--3"></div>
+        <div class="wave wave--4"></div>
+
+        <div class="fish-shadow" id="fishShadow"></div>
+      </div>
+
+      <!-- DOCK -->
+      <div class="dock">
+        <div class="dock__top"></div>
+        <div class="dock__leg dock__leg--1"></div>
+        <div class="dock__leg dock__leg--2"></div>
+      </div>
+
+      <!-- PLAYER -->
+      <div class="player-character" id="playerCharacter">
+
+        <div class="player-character__head"></div>
+        <div class="player-character__hair"></div>
+
+        <div class="player-character__body"></div>
+        <div class="player-character__shirt"></div>
+
+        <div class="player-character__arm player-character__arm--front"></div>
+        <div class="player-character__arm player-character__arm--back"></div>
+
+        <div class="player-character__leg player-character__leg--1"></div>
+        <div class="player-character__leg player-character__leg--2"></div>
+      </div>
+
+      <!-- ROD -->
+      <div class="rod" id="rod">
+        <div class="rod__stick"></div>
+        <div class="rod__tip"></div>
+        <div class="rod__line"></div>
+        <div class="rod__bobber"></div>
+      </div>
+
+    </section>
+
+    <!-- STATUS -->
+    <div class="status">
+
+      <div class="status__left">
+        <div
+          class="status__indicator is-ready"
+          id="statusIndicator"
+        ></div>
+
+        <div
+          class="status__text"
+          id="statusText"
+        >
+          Ready to cast
+        </div>
+      </div>
+
+      <div
+        class="status__timer"
+        id="statusTimer"
+      >
+        Next fishing: __NEXT_FISHING__
+      </div>
+
+    </div>
+
+    <!-- CONTROLS -->
+    <div class="controls">
+
+      <button
+        class="control control--cast"
+        id="castButton"
+      >
+        <span class="control__icon">
+          🎣
+        </span>
+
+        <span class="control__label">
+          CAST
+        </span>
+      </button>
+
+      <button
+        class="control"
+        id="leftButton"
+      >
+        <span class="control__icon">
+          ◀
+        </span>
+
+        <span class="control__label">
+          MOVE
+        </span>
+      </button>
+
+      <button
+        class="control"
+        id="rightButton"
+      >
+        <span class="control__icon">
+          ▶
+        </span>
+
+        <span class="control__label">
+          MOVE
+        </span>
+      </button>
+
+      <button
+        class="control"
+        id="bagButton"
+      >
+        <span class="control__icon">
+          🎒
+        </span>
+
+        <span class="control__label">
+          BAG
+        </span>
+      </button>
+
+    </div>
+
+    <!-- BAG -->
+    <div class="bag" id="bag">
+      <div class="bag__title">
+        🎒 Your Fishing Bag
+      </div>
+
+      <div class="bag__grid">
+
+        <div class="bag-item">
+          <span class="bag-item__emoji">
+            🎣
+          </span>
+
+          <span class="bag-item__name">
+            Rod
+          </span>
+        </div>
+
+        <div class="bag-item">
+          <span class="bag-item__emoji">
+            🪱
+          </span>
+
+          <span class="bag-item__name">
+            Bait
+          </span>
+        </div>
+
+        <div class="bag-item">
+          <span class="bag-item__emoji">
+            🐟
+          </span>
+
+          <span class="bag-item__name">
+            Fish
+          </span>
+        </div>
+
+        <div class="bag-item">
+          <span class="bag-item__emoji">
+            📦
+          </span>
+
+          <span class="bag-item__name">
+            Loot
+          </span>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- TIP -->
+    <div class="tip" id="tip">
+      🎣 Press <strong>CAST</strong> and wait for the bobber to bite.
+    </div>
+
+  </main>
+</div>
+
+<!-- =========================================================
+     RESULT OVERLAY
+     ========================================================= -->
+
+<div
+  class="overlay"
+  id="resultOverlay"
+>
+
+  <div class="result-card">
+
+    <div class="result__top">
+
+      <div class="result__small">
+        🎉 FISH CAUGHT
+      </div>
+
+      <div class="result__emoji" id="resultEmoji">
+        __FISH_EMOJI__
+      </div>
+
+      <div
+        class="result__name"
+        id="resultName"
+      >
+        __FISH_NAME__
+      </div>
+
+      <div class="result__biome">
+        Caught in __BIOME_NAME__
+      </div>
+
+    </div>
+
+    <div class="result__divider"></div>
+
+    <!-- STATS -->
+    <div class="result__stats">
+
+      <div class="stat">
+
+        <span class="stat__icon">
+          💰
+        </span>
+
+        <span class="stat__label">
+          Value
+        </span>
+
+        <span
+          class="stat__value"
+          id="resultValue"
+        >
+          __FISH_VALUE__
+        </span>
+
+      </div>
+
+      <div class="stat">
+
+        <span class="stat__icon">
+          ✨
+        </span>
+
+        <span class="stat__label">
+          XP
+        </span>
+
+        <span
+          class="stat__value"
+          id="resultXp"
+        >
+          __FISH_XP__
+        </span>
+
+      </div>
+
+      <div class="stat">
+
+        <span class="stat__icon">
+          ⚖️
+        </span>
+
+        <span class="stat__label">
+          Weight
+        </span>
+
+        <span
+          class="stat__value"
+          id="resultWeight"
+        >
+          __FISH_WEIGHT__
+        </span>
+
+      </div>
+
+    </div>
+
+    <!-- CLAIM -->
+<div class="claim">
+
+  <div class="claim__title">
+    🎁 Fish Added!
+  </div>
+
+  <div class="claim__code">
+    <strong>
+      __FISH_NAME__
+    </strong>
+    has been added to your inventory.
+  </div>
+
+  <div class="claim__command">
+    ⚡ Reward otomatis masuk ke inventory kamu.
+  </div>
+
+</div>
+    <!-- BUTTONS -->
+    <div class="result-buttons">
+
+      <button
+        class="result-button result-button--main"
+        id="againButton"
+      >
+        <span class="result-button__icon">
+          🎣
+        </span>
+
+        <span class="result-button__text">
+          Fish Again
+        </span>
+      </button>
+
+      <button
+        class="result-button"
+        id="closeResultButton"
+      >
+        <span class="result-button__icon">
+          ✕
+        </span>
+
+        <span class="result-button__text">
+          Close
+        </span>
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+/* =========================================================
+   SERVER DATA
+   ========================================================= */
+
+
+const FISH_NAME = "__FISH_NAME__";
+const FISH_EMOJI = "__FISH_EMOJI__";
+const FISH_XP = "__FISH_XP__";
+const FISH_VALUE = "__FISH_VALUE__";
+const FISH_WEIGHT = "__FISH_WEIGHT__";
+
+const BIOME_NAME = "__BIOME_NAME__";
+
+
+/* =========================================================
+   STATE
+   ========================================================= */
+
+const state = {
+  fishing: false,
+  biting: false,
+  caught: false,
+
+  playerX: 29,
+
+  castTimer: null,
+  biteTimer: null,
+  countdownTimer: null
+};
+
+
+/* =========================================================
+   ELEMENTS
+   ========================================================= */
+
+const scene =
+  document.getElementById("scene");
+
+const rod =
+  document.getElementById("rod");
+
+const playerCharacter =
+  document.getElementById("playerCharacter");
+
+const fishShadow =
+  document.getElementById("fishShadow");
+
+const statusText =
+  document.getElementById("statusText");
+
+const statusIndicator =
+  document.getElementById("statusIndicator");
+
+const statusTimer =
+  document.getElementById("statusTimer");
+
+const tip =
+  document.getElementById("tip");
+
+const castButton =
+  document.getElementById("castButton");
+
+const leftButton =
+  document.getElementById("leftButton");
+
+const rightButton =
+  document.getElementById("rightButton");
+
+const bagButton =
+  document.getElementById("bagButton");
+
+const bag =
+  document.getElementById("bag");
+
+const resultOverlay =
+  document.getElementById("resultOverlay");
+
+const resultEmoji =
+  document.getElementById("resultEmoji");
+
+const resultName =
+  document.getElementById("resultName");
+
+const resultValue =
+  document.getElementById("resultValue");
+
+const resultXp =
+  document.getElementById("resultXp");
+
+const resultWeight =
+  document.getElementById("resultWeight");
+
+const againButton =
+  document.getElementById("againButton");
+
+const closeResultButton =
+  document.getElementById("closeResultButton");
+
+
+/* =========================================================
+   STATUS
+   ========================================================= */
+
+function setStatus(text, type = "ready") {
+
+  statusText.textContent = text;
+
+  statusIndicator.className =
+    "status__indicator";
+
+  if(type === "ready"){
+    statusIndicator.classList.add("is-ready");
+  }
+
+  if(type === "bite"){
+    statusIndicator.classList.add("is-bite");
+  }
+
+  if(type === "caught"){
+    statusIndicator.classList.add("is-caught");
+  }
+}
+
+
+/* =========================================================
+   BUTTON STATE
+   ========================================================= */
+
+function updateButtons(){
+
+  castButton.disabled =
+    state.fishing ||
+    state.biting;
+
+  leftButton.disabled =
+    state.fishing ||
+    state.biting;
+
+  rightButton.disabled =
+    state.fishing ||
+    state.biting;
+
+}
+
+
+/* =========================================================
+   PLAYER MOVEMENT
+   ========================================================= */
+
+function movePlayer(direction){
+
+  if(state.fishing || state.biting){
+    return;
+  }
+
+  if(direction === "left"){
+    state.playerX -= 7;
+
+    playerCharacter.classList.add(
+      "is-left"
+    );
+  }
+
+  if(direction === "right"){
+    state.playerX += 7;
+
+    playerCharacter.classList.remove(
+      "is-left"
+    );
+  }
+
+  state.playerX =
+    Math.max(
+      17,
+      Math.min(
+        63,
+        state.playerX
+      )
+    );
+
+  playerCharacter.style.left =
+    state.playerX + "%";
+}
+
+
+/* =========================================================
+   SHOW BAG
+   ========================================================= */
+
+function toggleBag(){
+
+  bag.classList.toggle(
+    "is-open"
+  );
+
+  if(
+    bag.classList.contains("is-open")
+  ){
+    tip.textContent =
+      "🎒 Fishing bag opened.";
+  }else{
+    tip.innerHTML =
+      "🎣 Press <strong>CAST</strong> and wait for the bobber to bite.";
+  }
+}
+
+
+/* =========================================================
+   CAST
+   ========================================================= */
+
+function cast(){
+
+  if(state.fishing){
+    return;
+  }
+
+  if(state.biting){
+    return;
+  }
+
+  state.fishing = true;
+  state.caught = false;
+  state.biting = false;
+
+  updateButtons();
+
+  bag.classList.remove(
+    "is-open"
+  );
+
+  rod.classList.add(
+    "is-cast"
+  );
+
+  setStatus(
+    "Rod casted...",
+    "ready"
+  );
+
+  statusTimer.textContent =
+    "Waiting for a bite...";
+
+  tip.textContent =
+    "🌊 Stay focused. Something may bite soon.";
+
+  /*
+   * Bobber muncul terlebih dahulu.
+   */
+
+  fishShadow.style.left =
+    (state.playerX + 7) + "%";
+
+  fishShadow.style.top =
+    "23%";
+
+  setTimeout(() => {
+
+    fishShadow.classList.add(
+      "is-visible"
+    );
+
+  }, 300);
+
+  /*
+   * Delay random supaya tidak terasa seperti
+   * mesin vending ikan.
+   */
+
+  const biteDelay =
+    1800 +
+    Math.random() * 3200;
+
+  state.biteTimer =
+    setTimeout(
+      triggerBite,
+      biteDelay
+    );
+}
+
+
+/* =========================================================
+   BITE
+   ========================================================= */
+
+function triggerBite(){
+
+  if(!state.fishing){
+    return;
+  }
+
+  state.biting = true;
+
+  rod.classList.add(
+    "is-bite"
+  );
+
+  setStatus(
+    "🐟 BITE! REEL IT!",
+    "bite"
+  );
+
+  statusTimer.textContent =
+    "REEL NOW!";
+
+  tip.textContent =
+    "⚡ HIT CAST AGAIN to reel the fish!";
+
+  /*
+   * Dalam HTML client-side ini,
+   * tombol CAST berfungsi sebagai REEL
+   * setelah ikan menggigit.
+   */
+
+  castButton.disabled = false;
+  castButton.innerHTML =
+    `
+      <span class="control__icon">⚡</span>
+      <span class="control__label">REEL</span>
+    `;
+
+  /*
+   * Fish kabur kalau dibiarkan terlalu lama.
+   */
+
+  state.castTimer =
+    setTimeout(
+      fishEscaped,
+      4500
+    );
+}
+
+
+/* =========================================================
+   REEL
+   ========================================================= */
+
+function reel(){
+
+  if(!state.biting){
+    return;
+  }
+
+  clearTimeout(
+    state.castTimer
+  );
+
+  state.biting = false;
+  state.fishing = false;
+  state.caught = true;
+
+  rod.classList.remove(
+    "is-bite"
+  );
+
+  rod.classList.remove(
+    "is-cast"
+  );
+
+  fishShadow.classList.remove(
+    "is-visible"
+  );
+
+  castButton.innerHTML =
+    `
+      <span class="control__icon">🎣</span>
+      <span class="control__label">CAST</span>
+    `;
+
+  setStatus(
+    "🎉 Fish caught!",
+    "caught"
+  );
+
+  statusTimer.textContent =
+    "Reward ready";
+
+  tip.textContent =
+    "🎁 Claim your fish with the code below.";
+
+  updateButtons();
+
+  showResult();
+}
+
+
+/* =========================================================
+   FISH ESCAPED
+   ========================================================= */
+
+function fishEscaped(){
+
+  if(!state.biting){
+    return;
+  }
+
+  state.biting = false;
+  state.fishing = false;
+
+  rod.classList.remove(
+    "is-bite"
+  );
+
+  rod.classList.remove(
+    "is-cast"
+  );
+
+  fishShadow.classList.remove(
+    "is-visible"
+  );
+
+  castButton.innerHTML =
+    `
+      <span class="control__icon">🎣</span>
+      <span class="control__label">CAST</span>
+    `;
+
+  setStatus(
+    "The fish got away...",
+    "ready"
+  );
+
+  statusTimer.textContent =
+    "Try again";
+
+  tip.textContent =
+    "🐟 Too slow. Humanity has suffered another fishing failure.";
+
+  updateButtons();
+}
+
+
+/* =========================================================
+   SHOW RESULT
+   ========================================================= */
+
+function showResult(){
+
+  resultEmoji.textContent =
+    FISH_EMOJI;
+
+  resultName.textContent =
+    FISH_NAME;
+
+  resultValue.textContent =
+    FISH_VALUE;
+
+  resultXp.textContent =
+    FISH_XP;
+
+  resultWeight.textContent =
+    FISH_WEIGHT;
+
+  resultOverlay.classList.add(
+    "is-open"
+  );
+}
+
+
+/* =========================================================
+   CLOSE RESULT
+   ========================================================= */
+
+function closeResult(){
+
+  resultOverlay.classList.remove(
+    "is-open"
+  );
+
+  setStatus(
+    "Ready to cast",
+    "ready"
+  );
+
+  statusTimer.textContent =
+    "Next fishing: __NEXT_FISHING__";
+
+  tip.innerHTML =
+    "🎣 Press <strong>CAST</strong> and wait for the bobber to bite.";
+
+  state.caught = false;
+
+  updateButtons();
+}
+
+
+/* =========================================================
+   FISH AGAIN
+   ========================================================= */
+
+function fishAgain(){
+
+  closeResult();
+
+  setStatus(
+    "Ready to fish again",
+    "ready"
+  );
+
+  statusTimer.textContent =
+    "Send .fish again";
+
+  tip.innerHTML =
+    "🎣 Send <strong>.fish</strong> again to start a new fishing session.";
+}
+
+/* =========================================================
+   CAST BUTTON
+   ========================================================= */
+
+castButton.addEventListener(
+  "click",
+  () => {
+
+    if(state.biting){
+
+      reel();
+
+      return;
+    }
+
+    cast();
+  }
+);
+
+
+/* =========================================================
+   MOVEMENT
+   ========================================================= */
+
+leftButton.addEventListener(
+  "click",
+  () => {
+    movePlayer("left");
+  }
+);
+
+rightButton.addEventListener(
+  "click",
+  () => {
+    movePlayer("right");
+  }
+);
+
+
+/* =========================================================
+   BAG
+   ========================================================= */
+
+bagButton.addEventListener(
+  "click",
+  toggleBag
+);
+
+
+/* =========================================================
+   RESULT BUTTONS
+   ========================================================= */
+
+againButton.addEventListener(
+  "click",
+  fishAgain
+);
+
+closeResultButton.addEventListener(
+  "click",
+  closeResult
+);
+
+
+/* =========================================================
+   CLICK OUTSIDE
+   ========================================================= */
+
+resultOverlay.addEventListener(
+  "click",
+  event => {
+
+    if(
+      event.target === resultOverlay
+    ){
+      closeResult();
+    }
+
+  }
+);
+
+
+/* =========================================================
+   KEYBOARD SUPPORT
+   ========================================================= */
+
+document.addEventListener(
+  "keydown",
+  event => {
+
+    if(event.key === "ArrowLeft"){
+      movePlayer("left");
+    }
+
+    if(event.key === "ArrowRight"){
+      movePlayer("right");
+    }
+
+    if(
+      event.key === " " ||
+      event.key === "Enter"
+    ){
+
+      if(
+        document.activeElement ===
+        document.body
+      ){
+        castButton.click();
+      }
+
+    }
+
+  }
+);
+
+
+/* =========================================================
+   INITIAL STATE
+   ========================================================= */
+
+updateButtons();
+
+setStatus(
+  "Ready to cast",
+  "ready"
+);
+
+statusTimer.textContent =
+  "Next fishing: __NEXT_FISHING__";
+
+</script>
