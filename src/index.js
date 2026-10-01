@@ -6,6 +6,7 @@ import {
     guess,
     handleGuess
 } from './commands/guess.js'
+import { smeme } from './commands/smeme.js'
 import tttCommand from './commands/ttt.js'
 import { ping } from './commands/ping.js'
 import { dice } from './commands/dice.js'
@@ -208,6 +209,11 @@ async function startBot() {
         if (['.ttt', '.tictactoe'].includes(command)) {
             await tttCommand(sock, jid)
         }
+        
+        if (command === '.smeme') {
+            await smeme(sock, jid, message, args)
+            return
+        }  
 
   })
 }
